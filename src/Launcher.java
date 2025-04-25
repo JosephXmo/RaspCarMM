@@ -1,4 +1,5 @@
 import picocli.*;
+import java.util.*;
 
 public class Launcher {
     @CommandLine.Option(names = {"-L", "--terms"}, description = "Show terms and conditions of GNU GPL v3")
@@ -10,32 +11,42 @@ public class Launcher {
         if (termsRequested) showFundamentalLicenseMessage();
 
         // Write more here
-        sampleProgram();
+        try {
+            sampleProgram();
+        } catch (InterruptedException iEx) {
+            System.out.println("Thread interrupted." + iEx.getLocalizedMessage());
+        }
     }
 
-    public static void sampleProgram() {
+    public static void sampleProgram() throws InterruptedException {
         AudioEngine engine = new AudioEngine();
-        SourceCD cdSource = new SourceCD(engine);
+        List<CDTrack> trackList = List.of(
+                new CDTrack("Track 1 - Intro", 3),
+                new CDTrack("Track 2 - Melody", 5),
+                new CDTrack("Track 3 - Outro", 4)
+        );
 
-        Thread cdThread = new Thread(cdSource, "CDThread");
-
+        SourceCD cd = new SourceCD(engine, trackList);
+        Thread cdThread = new Thread(cd, "CDThread");
         cdThread.start();
 
-        // 模拟主线程周期性监控子线程状态
-        while (true) {
-            try {
-                Thread.sleep(3000);
-                if (!cdThread.isAlive()) {
-                    System.out.println("主线程监测到 CDThread 已退出，尝试重启...");
-                    cdThread = new Thread(new SourceCD(engine), "CDThread");
-                    cdThread.start();
-                } else {
-                    System.out.println("CDThread 状态良好");
-                }
-            } catch (InterruptedException iEx) {
-                iEx.printStackTrace();
-            }
-        }
+        // 模拟控制指令
+        Thread.sleep(7000);
+        cd.pause();
+        System.out.println("[主控] 暂停播放");
+
+        Thread.sleep(3000);
+        cd.resume();
+        System.out.println("[主控] 继续播放");
+
+        Thread.sleep(5000);
+        cd.nextTrack();
+        System.out.println("[主控] 跳到下一首");
+
+        Thread.sleep(5000);
+        cd.stop();
+        cdThread.join(); // 等待线程完全退出
+        System.out.println("[主控] CD模块已完全退出");
     }
 
     public static void showFundamentalLicenseMessage() {
