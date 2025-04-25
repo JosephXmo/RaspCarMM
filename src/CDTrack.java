@@ -16,8 +16,20 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-public class AudioEngine {
-    public void play(byte[] audioData) {
-        System.out.println("AudioEngine: 播放数据，大小 = " + audioData.length + " 字节");
+public class CDTrack {
+    private final String title;
+    private final int durationSeconds;
+
+    public CDTrack(String title, int durationSeconds) {
+        this.title = title;
+        this.durationSeconds = durationSeconds;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getDurationSeconds() {
+        return durationSeconds;
     }
 }

@@ -1,4 +1,23 @@
+/*
+    RaspCarMM: A classic multimedia head unit system. Powered by Raspberry Pi 4B/5 and Java.
+    Copyright (C) 2025  AriaNet
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 import picocli.*;
+import java.util.*;
 
 public class Launcher {
     @CommandLine.Option(names = {"-L", "--terms"}, description = "Show terms and conditions of GNU GPL v3")
@@ -10,32 +29,42 @@ public class Launcher {
         if (termsRequested) showFundamentalLicenseMessage();
 
         // Write more here
-        sampleProgram();
+        try {
+            sampleProgram();
+        } catch (InterruptedException iEx) {
+            System.out.println("Thread interrupted." + iEx.getLocalizedMessage());
+        }
     }
 
-    public static void sampleProgram() {
+    public static void sampleProgram() throws InterruptedException {
         AudioEngine engine = new AudioEngine();
-        SourceCD cdSource = new SourceCD(engine);
+        List<CDTrack> trackList = List.of(
+                new CDTrack("Track 1 - Intro", 3),
+                new CDTrack("Track 2 - Melody", 5),
+                new CDTrack("Track 3 - Outro", 4)
+        );
 
-        Thread cdThread = new Thread(cdSource, "CDThread");
-
+        SourceCD cd = new SourceCD(engine, trackList);
+        Thread cdThread = new Thread(cd, "CDThread");
         cdThread.start();
 
-        // 模拟主线程周期性监控子线程状态
-        while (true) {
-            try {
-                Thread.sleep(3000);
-                if (!cdThread.isAlive()) {
-                    System.out.println("主线程监测到 CDThread 已退出，尝试重启...");
-                    cdThread = new Thread(new SourceCD(engine), "CDThread");
-                    cdThread.start();
-                } else {
-                    System.out.println("CDThread 状态良好");
-                }
-            } catch (InterruptedException iEx) {
-                iEx.printStackTrace();
-            }
-        }
+        // 模拟控制指令
+        Thread.sleep(7000);
+        cd.pause();
+        System.out.println("[主控] 暂停播放");
+
+        Thread.sleep(3000);
+        cd.resume();
+        System.out.println("[主控] 继续播放");
+
+        Thread.sleep(5000);
+        cd.nextTrack();
+        System.out.println("[主控] 跳到下一首");
+
+        Thread.sleep(5000);
+        cd.stop();
+        cdThread.join(); // 等待线程完全退出
+        System.out.println("[主控] CD模块已完全退出");
     }
 
     public static void showFundamentalLicenseMessage() {
